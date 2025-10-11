@@ -71,7 +71,7 @@ st.sidebar.markdown(f"**Selected Mood:** {mood}")
 # 💬 6. Chatbot Page
 # -------------------------------
 if page == "💬 Chatbot":
-    st.title("🌱 Mental Health Companion Chatbot")
+    st.title("🌱Student Wellness Chatbot")
     st.markdown("Hey 👋 I'm here to listen and support you 🌸")
 
     user_input = st.text_area("🧑 What's on your mind?", placeholder="Type your feelings here...")
