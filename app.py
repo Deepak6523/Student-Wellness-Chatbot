@@ -10,7 +10,7 @@ st.set_page_config(page_title="Student Wellness Chatbot", page_icon="🌱", layo
 # -------------------------------
 # 🔑 2. Gemini API Setup
 # -------------------------------
-GEMINI_API_KEY = st.secrets["AIzaSyA8tjsVwnvQIDzFZ59M_q8gF7mSrmd9aBQ"]
+GEMINI_API_KEY = st.secrets["AIzaSyAItshfw7MH2WQRuHLTr7GyRP97Q6JHekw"]
 API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
 # -------------------------------
@@ -19,7 +19,7 @@ API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-fl
 def get_gemini_response(user_input, mood):
     headers = {
         "Content-Type": "application/json",
-        "X-goog-api-key": AIzaSyA8tjsVwnvQIDzFZ59M_q8gF7mSrmd9aBQ
+        "X-goog-api-key": GEMINI_API_KEY
     }
 
     payload = {
