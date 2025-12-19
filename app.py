@@ -10,7 +10,9 @@ st.set_page_config(page_title="Student Wellness Chatbot", page_icon="🌱", layo
 # -------------------------------
 # 🔑 2. Gemini API Setup
 # -------------------------------
-GEMINI_API_KEY = "AIzaSyCvybsAlL91P0WpbM7k1B-K3NZSwWXXbw8"
+GEMINI_API_KEY = "AIzaSyAmCXZC0h9Dk0Mfo7TeZJG843tjMYdnagA"
+API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+
 
 
 # -------------------------------
