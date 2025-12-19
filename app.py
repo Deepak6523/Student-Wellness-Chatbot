@@ -10,7 +10,7 @@ st.set_page_config(page_title="Student Wellness Chatbot", page_icon="🌱", layo
 # -------------------------------
 # 🔑 2. Gemini API Setup
 # -------------------------------
-GEMINI_API_KEY = "AIzaSyCvybsAlL91P0WpbM7k1B-K3NZSwWXXbw8"
+GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
 # -------------------------------
@@ -71,7 +71,7 @@ st.sidebar.markdown(f"**Selected Mood:** {mood}")
 # 💬 6. Chatbot Page
 # -------------------------------
 if page == "💬 Chatbot":
-    st.title("🌱Student Wellness Chatbot")
+    st.title("🌱 Student Wellness Chatbot (Gemini API)")
     st.markdown("Hey 👋 I'm here to listen and support you 🌸")
 
     user_input = st.text_area("🧑 What's on your mind?", placeholder="Type your feelings here...")
