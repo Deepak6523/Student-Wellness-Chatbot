@@ -1,6 +1,6 @@
 import streamlit as st
-import requests
 import datetime
+from openai import OpenAI
 
 # -------------------------------
 # 🌿 Page Setup
@@ -12,53 +12,45 @@ st.set_page_config(
 )
 
 # -------------------------------
-# 🔑 Gemini API Setup
+# 🔑 OpenAI Setup (SAFE)
 # -------------------------------
-API_KEY = "AIzaSyCYd2nnEsmtE1iwZB0KtTBcAdutBUR4EYw"
-MODEL = "models/gemini-2.0-flash"
+if "OPENAI_API_KEY" not in st.secrets:
+    st.error("❌ OPENAI_API_KEY not found in Streamlit secrets")
+    st.stop()
 
-API_URL = (
-    f"https://generativelanguage.googleapis.com/v1beta/"
-    f"{MODEL}:generateContent"
-)
+client = OpenAI(api_key="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")
+
+MODEL = "gpt-4o-mini"  # fast, cheap, excellent for chatbots
 
 # -------------------------------
-# 💬 Gemini Response Function
+# 💬 ChatGPT Response Function
 # -------------------------------
-def get_gemini_response(user_input, mood):
-    headers = {
-        "Content-Type": "application/json",
-        "X-goog-api-key": API_KEY
-    }
+def get_chatgpt_response(user_input, mood):
+    try:
+        response = client.chat.completions.create(
+            model=MODEL,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a kind, empathetic student wellness chatbot. "
+                        "Listen carefully, validate emotions, and give gentle, supportive advice. "
+                        "Do NOT give medical or clinical diagnoses."
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": f"My mood is {mood}. {user_input}"
+                }
+            ],
+            temperature=0.7,
+            max_tokens=300
+        )
 
-    payload = {
-        "contents": [
-            {
-                "role": "user",
-                "parts": [
-                    {
-                        "text": (
-                            "You are a kind, empathetic student wellness chatbot.\n"
-                            f"User mood: {mood}\n"
-                            f"User message: {user_input}"
-                        )
-                    }
-                ]
-            }
-        ],
-        "generationConfig": {
-            "temperature": 0.7,
-            "maxOutputTokens": 256
-        }
-    }
+        return response.choices[0].message.content.strip()
 
-    response = requests.post(API_URL, headers=headers, json=payload)
-
-    if response.status_code != 200:
-        return f"⚠️ Gemini Error {response.status_code}:\n{response.text}"
-
-    data = response.json()
-    return data["candidates"][0]["content"]["parts"][0]["text"]
+    except Exception as e:
+        return f"⚠️ Error communicating with ChatGPT: {e}"
 
 # -------------------------------
 # 🧠 Session State
@@ -87,15 +79,18 @@ st.session_state.mood = mood
 # 💬 Chatbot Page
 # -------------------------------
 if page == "💬 Chatbot":
-    st.title("🌱 Student Wellness Chatbot (Gemini 2.0)")
+    st.title("🌱 Student Wellness Chatbot (ChatGPT)")
     st.markdown("Hey 👋 I'm here to listen and support you 🌸")
 
-    user_input = st.text_area("🧑 What's on your mind?")
+    user_input = st.text_area(
+        "🧑 What's on your mind?",
+        placeholder="Type your feelings here..."
+    )
 
     if st.button("Send 💌"):
         if user_input.strip():
             with st.spinner("Thinking... 💭"):
-                reply = get_gemini_response(user_input, mood)
+                reply = get_chatgpt_response(user_input, mood)
                 st.session_state.chat_history.append(("You", user_input))
                 st.session_state.chat_history.append(("Bot", reply))
         else:
@@ -110,6 +105,7 @@ if page == "💬 Chatbot":
 # -------------------------------
 elif page == "📝 Personal Journal":
     st.title("📝 Personal Journal")
+    st.markdown("Reflect on your thoughts and track your journey 🌼")
 
     journal_entry = st.text_area("Write your reflection ✍️")
 
@@ -118,5 +114,7 @@ elif page == "📝 Personal Journal":
         st.session_state.journal_entries.append((ts, journal_entry))
         st.success("Journal entry saved 💾")
 
-    for ts, entry in reversed(st.session_state.journal_entries):
-        st.markdown(f"**{ts}:** {entry}")
+    if st.session_state.journal_entries:
+        st.markdown("### 🗂️ Your Saved Entries")
+        for ts, entry in reversed(st.session_state.journal_entries):
+            st.markdown(f"**{ts}:** {entry}")
