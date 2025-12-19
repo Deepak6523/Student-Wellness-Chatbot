@@ -18,7 +18,7 @@ if "OPENAI_API_KEY" not in st.secrets:
     st.error("❌ OPENAI_API_KEY not found in Streamlit secrets")
     st.stop()
 
-client = OpenAI(api_key=st.secrets["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"])
+client = OpenAI(api_key="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")
 
 MODEL = "gpt-4o-mini"  # fast, cheap, best for chatbots
 
