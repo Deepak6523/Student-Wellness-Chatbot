@@ -3,7 +3,7 @@ import requests
 import datetime
 
 # -------------------------------
-# 🌿 Page Setup
+# 🌿 Page Configuration
 # -------------------------------
 st.set_page_config(
     page_title="Student Wellness Chatbot",
@@ -12,15 +12,16 @@ st.set_page_config(
 )
 
 # -------------------------------
-# 🔑 Gemini API Setup
+# 🔑 Gemini API Setup (FREE)
 # -------------------------------
-API_KEY = "AIzaSyCGoJ7nA4RRFzZuxHozwYIQnYacwEzYsWU"
-MODEL = "models/gemini-2.0-flash"
+if "GEMINI_API_KEY" not in st.secrets:
+    st.error("❌ GEMINI_API_KEY not found in Streamlit secrets")
+    st.stop()
 
-API_URL = (
-    f"https://generativelanguage.googleapis.com/v1beta/"
-    f"{MODEL}:generateContent"
-)
+API_KEY = "AIzaSyCGoJ7nA4RRFzZuxHozwYIQnYacwEzYsWU"
+MODEL = "models/gemini-1.5-flash"
+
+API_URL = f"https://generativelanguage.googleapis.com/v1beta/{MODEL}:generateContent"
 
 # -------------------------------
 # 💬 Gemini Response Function
@@ -38,7 +39,9 @@ def get_gemini_response(user_input, mood):
                 "parts": [
                     {
                         "text": (
-                            "You are a kind, empathetic student wellness chatbot.\n"
+                            "You are a kind, empathetic student wellness chatbot. "
+                            "Listen carefully, validate emotions, and offer gentle support. "
+                            "Do not give medical or clinical advice.\n\n"
                             f"User mood: {mood}\n"
                             f"User message: {user_input}"
                         )
@@ -87,10 +90,13 @@ st.session_state.mood = mood
 # 💬 Chatbot Page
 # -------------------------------
 if page == "💬 Chatbot":
-    st.title("🌱 Student Wellness Chatbot (Gemini 2.0)")
+    st.title("🌱 Student Wellness Chatbot (Gemini 1.5 Flash)")
     st.markdown("Hey 👋 I'm here to listen and support you 🌸")
 
-    user_input = st.text_area("🧑 What's on your mind?")
+    user_input = st.text_area(
+        "🧑 What's on your mind?",
+        placeholder="Type your feelings here..."
+    )
 
     if st.button("Send 💌"):
         if user_input.strip():
@@ -106,17 +112,20 @@ if page == "💬 Chatbot":
         st.markdown(f"**{sender}:** {msg}")
 
 # -------------------------------
-# 📝 Journal Page
+# 📝 Personal Journal Page
 # -------------------------------
 elif page == "📝 Personal Journal":
     st.title("📝 Personal Journal")
+    st.markdown("Reflect on your thoughts and track your journey 🌼")
 
     journal_entry = st.text_area("Write your reflection ✍️")
 
     if st.button("Save Entry 📚") and journal_entry.strip():
-        ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-        st.session_state.journal_entries.append((ts, journal_entry))
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+        st.session_state.journal_entries.append((timestamp, journal_entry))
         st.success("Journal entry saved 💾")
 
-    for ts, entry in reversed(st.session_state.journal_entries):
-        st.markdown(f"**{ts}:** {entry}")
+    if st.session_state.journal_entries:
+        st.markdown("### 🗂️ Your Saved Entries")
+        for ts, entry in reversed(st.session_state.journal_entries):
+            st.markdown(f"**{ts}:** {entry}")
