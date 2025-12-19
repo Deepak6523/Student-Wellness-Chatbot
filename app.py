@@ -18,7 +18,7 @@ if "GEMINI_API_KEY" not in st.secrets:
     st.error("❌ GEMINI_API_KEY not found in Streamlit secrets")
     st.stop()
 
-API_KEY = st.secrets["AIzaSyCGoJ7nA4RRFzZuxHozwYIQnYacwEzYsWU"]
+API_KEY = "AIzaSyCGoJ7nA4RRFzZuxHozwYIQnYacwEzYsWU"
 MODEL = "models/gemini-1.5-flash"
 
 API_URL = f"https://generativelanguage.googleapis.com/v1beta/{MODEL}:generateContent"
