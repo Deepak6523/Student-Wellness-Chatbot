@@ -3,68 +3,48 @@ import requests
 import datetime
 
 # -------------------------------
-# 🌿 Page Configuration
+# 🌿 1. Setup
 # -------------------------------
-st.set_page_config(
-    page_title="Student Wellness Chatbot",
-    page_icon="🌱",
-    layout="centered"
-)
+st.set_page_config(page_title="Student Wellness Chatbot", page_icon="🌱", layout="centered")
 
 # -------------------------------
-# 🔑 Gemini API Setup (FREE)
+# 🔑 2. Gemini API Setup
 # -------------------------------
-if "GEMINI_API_KEY" not in st.secrets:
-    st.error("❌ GEMINI_API_KEY not found in Streamlit secrets")
-    st.stop()
-
-API_KEY = "AIzaSyCGoJ7nA4RRFzZuxHozwYIQnYacwEzYsWU"
-MODEL = "models/gemini-1.5-flash"
-
-API_URL = f"https://generativelanguage.googleapis.com/v1beta/{MODEL}:generateContent"
+GEMINI_API_KEY = "AIzaSyCvybsAlL91P0WpbM7k1B-K3NZSwWXXbw8"
+API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
 # -------------------------------
-# 💬 Gemini Response Function
+# 💬 3. Function to Get Response
 # -------------------------------
 def get_gemini_response(user_input, mood):
     headers = {
         "Content-Type": "application/json",
-        "X-goog-api-key": API_KEY
+        "X-goog-api-key": GEMINI_API_KEY
     }
 
     payload = {
         "contents": [
             {
-                "role": "user",
                 "parts": [
                     {
-                        "text": (
-                            "You are a kind, empathetic student wellness chatbot. "
-                            "Listen carefully, validate emotions, and offer gentle support. "
-                            "Do not give medical or clinical advice.\n\n"
-                            f"User mood: {mood}\n"
-                            f"User message: {user_input}"
-                        )
+                        "text": f"You are a kind, empathetic wellness chatbot. "
+                                f"The user feels {mood}. Respond empathetically to: {user_input}"
                     }
                 ]
             }
-        ],
-        "generationConfig": {
-            "temperature": 0.7,
-            "maxOutputTokens": 256
-        }
+        ]
     }
 
-    response = requests.post(API_URL, headers=headers, json=payload)
-
-    if response.status_code != 200:
-        return f"⚠️ Gemini Error {response.status_code}:\n{response.text}"
-
-    data = response.json()
-    return data["candidates"][0]["content"]["parts"][0]["text"]
+    try:
+        res = requests.post(API_URL, headers=headers, json=payload)
+        res.raise_for_status()
+        data = res.json()
+        return data["candidates"][0]["content"]["parts"][0]["text"]
+    except Exception as e:
+        return f"⚠️ Error: {e}"
 
 # -------------------------------
-# 🧠 Session State
+# 🧠 4. Session State
 # -------------------------------
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
@@ -74,7 +54,7 @@ if "mood" not in st.session_state:
     st.session_state.mood = "🙂 Normal"
 
 # -------------------------------
-# 🎭 Sidebar
+# 🎭 5. Sidebar Navigation
 # -------------------------------
 st.sidebar.title("🌿 Navigation")
 page = st.sidebar.radio("Go to:", ["💬 Chatbot", "📝 Personal Journal"])
@@ -82,37 +62,41 @@ page = st.sidebar.radio("Go to:", ["💬 Chatbot", "📝 Personal Journal"])
 st.sidebar.header("🧠 Mood Tracker")
 mood = st.sidebar.radio(
     "How are you feeling today?",
-    ["🙂 Normal", "😢 Sad", "😠 Angry", "😌 Calm", "😕 Upset", "😎 Cool"]
+    ["🙂 Normal", "😢 Sad", "😠 Angry", "😌 Calm", "😕 Upset", "😎 Cool"],
 )
 st.session_state.mood = mood
+st.sidebar.markdown(f"**Selected Mood:** {mood}")
 
 # -------------------------------
-# 💬 Chatbot Page
+# 💬 6. Chatbot Page
 # -------------------------------
 if page == "💬 Chatbot":
-    st.title("🌱 Student Wellness Chatbot (Gemini 1.5 Flash)")
+    st.title("🌱Student Wellness Chatbot")
     st.markdown("Hey 👋 I'm here to listen and support you 🌸")
 
-    user_input = st.text_area(
-        "🧑 What's on your mind?",
-        placeholder="Type your feelings here..."
-    )
+    user_input = st.text_area("🧑 What's on your mind?", placeholder="Type your feelings here...")
 
     if st.button("Send 💌"):
         if user_input.strip():
             with st.spinner("Thinking... 💭"):
-                reply = get_gemini_response(user_input, mood)
+                bot_reply = get_gemini_response(user_input, mood)
                 st.session_state.chat_history.append(("You", user_input))
-                st.session_state.chat_history.append(("Bot", reply))
-        else:
-            st.warning("Please type something 💭")
+                st.session_state.chat_history.append(("Bot", bot_reply))
 
     st.markdown("### 💬 Conversation History")
     for sender, msg in st.session_state.chat_history[-20:]:
-        st.markdown(f"**{sender}:** {msg}")
+        color = "rgba(173,216,230,0.2)" if sender == "You" else "rgba(255,215,0,0.15)"
+        border = "#ADD8E6" if sender == "You" else "#FFD700"
+        st.markdown(f"""
+        <div style="text-align:{'right' if sender == 'You' else 'left'};
+        background-color:{color}; padding:10px;
+        border-radius:10px; margin:5px; border:1px solid {border};">
+            <b>{sender}:</b> {msg}
+        </div>
+        """, unsafe_allow_html=True)
 
 # -------------------------------
-# 📝 Personal Journal Page
+# 📝 7. Journal Page
 # -------------------------------
 elif page == "📝 Personal Journal":
     st.title("📝 Personal Journal")
@@ -120,12 +104,18 @@ elif page == "📝 Personal Journal":
 
     journal_entry = st.text_area("Write your reflection ✍️")
 
-    if st.button("Save Entry 📚") and journal_entry.strip():
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-        st.session_state.journal_entries.append((timestamp, journal_entry))
-        st.success("Journal entry saved 💾")
+    if st.button("Save Entry 📚"):
+        if journal_entry.strip():
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+            st.session_state.journal_entries.append((timestamp, journal_entry))
+            st.success("Journal entry saved successfully 💾")
 
     if st.session_state.journal_entries:
         st.markdown("### 🗂️ Your Saved Entries")
-        for ts, entry in reversed(st.session_state.journal_entries):
-            st.markdown(f"**{ts}:** {entry}")
+        for i, (ts, entry) in enumerate(reversed(st.session_state.journal_entries), 1):
+            st.markdown(f"""
+            <div style="background-color:rgba(144,238,144,0.2); padding:10px;
+            border-radius:8px; margin:8px 0; border:1px solid #90EE90;">
+                <b>Entry {i} ({ts}):</b><br>{entry}
+            </div>
+            """, unsafe_allow_html=True)
