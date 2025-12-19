@@ -14,7 +14,7 @@ st.set_page_config(
 # -------------------------------
 # 🔑 Gemini API Setup
 # -------------------------------
-API_KEY = "AIzaSyAmCXZC0h9Dk0Mfo7TeZJG843tjMYdnagA"
+API_KEY = "AIzaSyCYd2nnEsmtE1iwZB0KtTBcAdutBUR4EYw"
 MODEL = "models/gemini-2.0-flash"
 
 API_URL = (
