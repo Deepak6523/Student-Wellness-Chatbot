@@ -19,7 +19,7 @@ API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-fl
 def get_gemini_response(user_input, mood):
     headers = {
         "Content-Type": "application/json",
-        "X-goog-api-key": GEMINI_API_KEY
+        "X-goog-api-key": "AIzaSyDt4Dm_F62DqHgIJiEaHyRwJv5EPc_VWYo"
     }
 
     payload = {
