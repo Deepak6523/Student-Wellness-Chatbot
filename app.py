@@ -3,7 +3,7 @@ import datetime
 from openai import OpenAI
 
 # -------------------------------
-# 🌿 Page Setup
+# 🌿 Page Configuration
 # -------------------------------
 st.set_page_config(
     page_title="Student Wellness Chatbot",
@@ -12,7 +12,7 @@ st.set_page_config(
 )
 
 # -------------------------------
-# 🔑 OpenAI Setup (SAFE)
+# 🔑 OpenAI Setup
 # -------------------------------
 if "OPENAI_API_KEY" not in st.secrets:
     st.error("❌ OPENAI_API_KEY not found in Streamlit secrets")
@@ -20,7 +20,7 @@ if "OPENAI_API_KEY" not in st.secrets:
 
 client = OpenAI(api_key="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")
 
-MODEL = "gpt-4o-mini"  # fast, cheap, excellent for chatbots
+MODEL = "gpt-4o-mini"  # fast, cheap, best for chatbots
 
 # -------------------------------
 # 💬 ChatGPT Response Function
@@ -34,7 +34,7 @@ def get_chatgpt_response(user_input, mood):
                     "role": "system",
                     "content": (
                         "You are a kind, empathetic student wellness chatbot. "
-                        "Listen carefully, validate emotions, and give gentle, supportive advice. "
+                        "Listen carefully, validate emotions, and give gentle support. "
                         "Do NOT give medical or clinical diagnoses."
                     )
                 },
@@ -63,7 +63,7 @@ if "mood" not in st.session_state:
     st.session_state.mood = "🙂 Normal"
 
 # -------------------------------
-# 🎭 Sidebar
+# 🎭 Sidebar Navigation
 # -------------------------------
 st.sidebar.title("🌿 Navigation")
 page = st.sidebar.radio("Go to:", ["💬 Chatbot", "📝 Personal Journal"])
@@ -79,7 +79,7 @@ st.session_state.mood = mood
 # 💬 Chatbot Page
 # -------------------------------
 if page == "💬 Chatbot":
-    st.title("🌱 Student Wellness Chatbot (ChatGPT)")
+    st.title("🌱 Student Wellness Chatbot")
     st.markdown("Hey 👋 I'm here to listen and support you 🌸")
 
     user_input = st.text_area(
@@ -101,7 +101,7 @@ if page == "💬 Chatbot":
         st.markdown(f"**{sender}:** {msg}")
 
 # -------------------------------
-# 📝 Journal Page
+# 📝 Personal Journal Page
 # -------------------------------
 elif page == "📝 Personal Journal":
     st.title("📝 Personal Journal")
@@ -110,8 +110,8 @@ elif page == "📝 Personal Journal":
     journal_entry = st.text_area("Write your reflection ✍️")
 
     if st.button("Save Entry 📚") and journal_entry.strip():
-        ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-        st.session_state.journal_entries.append((ts, journal_entry))
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+        st.session_state.journal_entries.append((timestamp, journal_entry))
         st.success("Journal entry saved 💾")
 
     if st.session_state.journal_entries:
