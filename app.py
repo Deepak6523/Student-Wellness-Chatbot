@@ -5,12 +5,16 @@ import datetime
 # -------------------------------
 # 🌿 1. Setup
 # -------------------------------
-st.set_page_config(page_title="Student Wellness Chatbot", page_icon="🌱", layout="centered")
+st.set_page_config(
+    page_title="Student Wellness Chatbot",
+    page_icon="🌱",
+    layout="centered"
+)
 
 # -------------------------------
 # 🔑 2. Gemini API Setup
 # -------------------------------
-GEMINI_API_KEY = "AIzaSyCvybsAlL91P0WpbM7k1B-K3NZSwWXXbw8"
+GEMINI_API_KEY = "AIzaSyA40W8FbLWe0MExzNi7jSvWlBgR8vefNS4"  # ⚠️ Replace with your real key
 API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
 # -------------------------------
@@ -27,18 +31,26 @@ def get_gemini_response(user_input, mood):
             {
                 "parts": [
                     {
-                        "text": f"You are a kind, empathetic wellness chatbot. "
-                                f"The user feels {mood}. Respond empathetically to: {user_input}"
+                        "text": (
+                            f"You are a kind, empathetic student wellness chatbot. "
+                            f"The user feels {mood}. "
+                            f"Respond empathetically and supportively to the following message:\n\n"
+                            f"{user_input}"
+                        )
                     }
                 ]
             }
-        ]
+        ],
+        "generationConfig": {
+            "temperature": 1,
+            "minOutputTokens": 20
+        }
     }
 
     try:
-        res = requests.post(API_URL, headers=headers, json=payload)
-        res.raise_for_status()
-        data = res.json()
+        response = requests.post(API_URL, headers=headers, json=payload)
+        response.raise_for_status()
+        data = response.json()
         return data["candidates"][0]["content"]["parts"][0]["text"]
     except Exception as e:
         return f"⚠️ Error: {e}"
@@ -48,8 +60,10 @@ def get_gemini_response(user_input, mood):
 # -------------------------------
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
+
 if "journal_entries" not in st.session_state:
     st.session_state.journal_entries = []
+
 if "mood" not in st.session_state:
     st.session_state.mood = "🙂 Normal"
 
@@ -71,10 +85,13 @@ st.sidebar.markdown(f"**Selected Mood:** {mood}")
 # 💬 6. Chatbot Page
 # -------------------------------
 if page == "💬 Chatbot":
-    st.title("🌱Student Wellness Chatbot")
+    st.title("🌱 Student Wellness Chatbot")
     st.markdown("Hey 👋 I'm here to listen and support you 🌸")
 
-    user_input = st.text_area("🧑 What's on your mind?", placeholder="Type your feelings here...")
+    user_input = st.text_area(
+        "🧑 What's on your mind?",
+        placeholder="Type your feelings here..."
+    )
 
     if st.button("Send 💌"):
         if user_input.strip():
@@ -84,16 +101,26 @@ if page == "💬 Chatbot":
                 st.session_state.chat_history.append(("Bot", bot_reply))
 
     st.markdown("### 💬 Conversation History")
+
     for sender, msg in st.session_state.chat_history[-20:]:
         color = "rgba(173,216,230,0.2)" if sender == "You" else "rgba(255,215,0,0.15)"
         border = "#ADD8E6" if sender == "You" else "#FFD700"
-        st.markdown(f"""
-        <div style="text-align:{'right' if sender == 'You' else 'left'};
-        background-color:{color}; padding:10px;
-        border-radius:10px; margin:5px; border:1px solid {border};">
-            <b>{sender}:</b> {msg}
-        </div>
-        """, unsafe_allow_html=True)
+
+        st.markdown(
+            f"""
+            <div style="
+                text-align:{'right' if sender == 'You' else 'left'};
+                background-color:{color};
+                padding:10px;
+                border-radius:10px;
+                margin:5px;
+                border:1px solid {border};
+            ">
+                <b>{sender}:</b> {msg}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
 # -------------------------------
 # 📝 7. Journal Page
@@ -112,10 +139,21 @@ elif page == "📝 Personal Journal":
 
     if st.session_state.journal_entries:
         st.markdown("### 🗂️ Your Saved Entries")
-        for i, (ts, entry) in enumerate(reversed(st.session_state.journal_entries), 1):
-            st.markdown(f"""
-            <div style="background-color:rgba(144,238,144,0.2); padding:10px;
-            border-radius:8px; margin:8px 0; border:1px solid #90EE90;">
-                <b>Entry {i} ({ts}):</b><br>{entry}
-            </div>
-            """, unsafe_allow_html=True)
+
+        for i, (ts, entry) in enumerate(
+            reversed(st.session_state.journal_entries), start=1
+        ):
+            st.markdown(
+                f"""
+                <div style="
+                    background-color:rgba(144,238,144,0.2);
+                    padding:10px;
+                    border-radius:8px;
+                    margin:8px 0;
+                    border:1px solid #90EE90;
+                ">
+                    <b>Entry {i} ({ts}):</b><br>{entry}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
