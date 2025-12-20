@@ -14,7 +14,7 @@ st.set_page_config(
 # -------------------------------
 # 🔑 2. Gemini API Setup
 # -------------------------------
-GEMINI_API_KEY = "AIzaSyA40W8FbLWe0MExzNi7jSvWlBgR8vefNS4"  # ⚠️ Replace with your real key
+GEMINI_API_KEY = "YOUR_API_KEY_HERE"  # ⚠️ Replace with your real key
 API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
 # -------------------------------
