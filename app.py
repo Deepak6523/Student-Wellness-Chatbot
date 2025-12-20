@@ -1,159 +1,151 @@
 import streamlit as st
-import requests
-import datetime
+import os
+from groq import Groq
+from datetime import datetime
 
-# -------------------------------
-# 🌿 1. Setup
-# -------------------------------
+# --------------------------------------------------
+# Page Config
+# --------------------------------------------------
 st.set_page_config(
     page_title="Student Wellness Chatbot",
     page_icon="🌱",
     layout="centered"
 )
 
-# -------------------------------
-# 🔑 2. Gemini API Setup
-# -------------------------------
-GEMINI_API_KEY = "YOUR_API_KEY_HERE"  # ⚠️ Replace with your real key
-API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+# --------------------------------------------------
+# Load API Key
+# --------------------------------------------------
+API_KEY = None
+try:
+    API_KEY = st.secrets["GROQ_API_KEY"]
+except Exception:
+    API_KEY = os.getenv("GROQ_API_KEY")
 
-# -------------------------------
-# 💬 3. Function to Get Response
-# -------------------------------
-def get_gemini_response(user_input, mood):
-    headers = {
-        "Content-Type": "application/json",
-        "X-goog-api-key": GEMINI_API_KEY
-    }
+if not API_KEY:
+    st.error("GROQ_API_KEY not found")
+    st.stop()
 
-    payload = {
-        "contents": [
-            {
-                "parts": [
-                    {
-                        "text": (
-                            f"You are a kind, empathetic student wellness chatbot. "
-                            f"The user feels {mood}. "
-                            f"Respond empathetically and supportively to the following message:\n\n"
-                            f"{user_input}"
-                        )
-                    }
-                ]
-            }
-        ],
-        "generationConfig": {
-            "temperature": 1,
-            "minOutputTokens": 20
-        }
-    }
+client = Groq(api_key=API_KEY)
 
-    try:
-        response = requests.post(API_URL, headers=headers, json=payload)
-        response.raise_for_status()
-        data = response.json()
-        return data["candidates"][0]["content"]["parts"][0]["text"]
-    except Exception as e:
-        return f"⚠️ Error: {e}"
+# --------------------------------------------------
+# Sidebar
+# --------------------------------------------------
+with st.sidebar:
+    st.markdown("## 🌱 Navigation")
 
-# -------------------------------
-# 🧠 4. Session State
-# -------------------------------
+    page = st.radio(
+        "Go to:",
+        ["💬 Chatbot", "📓 Personal Journal"]
+    )
+
+    st.markdown("---")
+    st.markdown("## 🧠 Mood Tracker")
+
+    mood = st.radio(
+        "How are you feeling today?",
+        ["😊 Normal", "😔 Sad", "😡 Angry", "😌 Calm", "😟 Upset", "😎 Cool"]
+    )
+
+    if st.button("🗑️ Clear Chat"):
+        st.session_state.chat_history = []
+        st.rerun()
+
+# --------------------------------------------------
+# Session State
+# --------------------------------------------------
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
 if "journal_entries" not in st.session_state:
     st.session_state.journal_entries = []
 
-if "mood" not in st.session_state:
-    st.session_state.mood = "🙂 Normal"
-
-# -------------------------------
-# 🎭 5. Sidebar Navigation
-# -------------------------------
-st.sidebar.title("🌿 Navigation")
-page = st.sidebar.radio("Go to:", ["💬 Chatbot", "📝 Personal Journal"])
-
-st.sidebar.header("🧠 Mood Tracker")
-mood = st.sidebar.radio(
-    "How are you feeling today?",
-    ["🙂 Normal", "😢 Sad", "😠 Angry", "😌 Calm", "😕 Upset", "😎 Cool"],
-)
-st.session_state.mood = mood
-st.sidebar.markdown(f"**Selected Mood:** {mood}")
-
-# -------------------------------
-# 💬 6. Chatbot Page
-# -------------------------------
+# --------------------------------------------------
+# CHATBOT PAGE (MATCHES YOUR DESIGN)
+# --------------------------------------------------
 if page == "💬 Chatbot":
-    st.title("🌱 Student Wellness Chatbot")
-    st.markdown("Hey 👋 I'm here to listen and support you 🌸")
+
+    st.markdown("# 🌱 Student Wellness Chatbot")
+    st.markdown("### Hey 👋 I'm here to listen and support you 🌸")
+    st.markdown("🧑‍🎓 **What's on your mind?**")
 
     user_input = st.text_area(
-        "🧑 What's on your mind?",
-        placeholder="Type your feelings here..."
+        "",
+        placeholder="Type your feelings here...",
+        height=150
     )
 
-    if st.button("Send 💌"):
+    if st.button("Send ❤️"):
         if user_input.strip():
-            with st.spinner("Thinking... 💭"):
-                bot_reply = get_gemini_response(user_input, mood)
-                st.session_state.chat_history.append(("You", user_input))
-                st.session_state.chat_history.append(("Bot", bot_reply))
-
-    st.markdown("### 💬 Conversation History")
-
-    for sender, msg in st.session_state.chat_history[-20:]:
-        color = "rgba(173,216,230,0.2)" if sender == "You" else "rgba(255,215,0,0.15)"
-        border = "#ADD8E6" if sender == "You" else "#FFD700"
-
-        st.markdown(
-            f"""
-            <div style="
-                text-align:{'right' if sender == 'You' else 'left'};
-                background-color:{color};
-                padding:10px;
-                border-radius:10px;
-                margin:5px;
-                border:1px solid {border};
-            ">
-                <b>{sender}:</b> {msg}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-# -------------------------------
-# 📝 7. Journal Page
-# -------------------------------
-elif page == "📝 Personal Journal":
-    st.title("📝 Personal Journal")
-    st.markdown("Reflect on your thoughts and track your journey 🌼")
-
-    journal_entry = st.text_area("Write your reflection ✍️")
-
-    if st.button("Save Entry 📚"):
-        if journal_entry.strip():
-            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-            st.session_state.journal_entries.append((timestamp, journal_entry))
-            st.success("Journal entry saved successfully 💾")
-
-    if st.session_state.journal_entries:
-        st.markdown("### 🗂️ Your Saved Entries")
-
-        for i, (ts, entry) in enumerate(
-            reversed(st.session_state.journal_entries), start=1
-        ):
-            st.markdown(
-                f"""
-                <div style="
-                    background-color:rgba(144,238,144,0.2);
-                    padding:10px;
-                    border-radius:8px;
-                    margin:8px 0;
-                    border:1px solid #90EE90;
-                ">
-                    <b>Entry {i} ({ts}):</b><br>{entry}
-                </div>
-                """,
-                unsafe_allow_html=True
+            SYSTEM_PROMPT = (
+                "You are a kind, empathetic student wellness chatbot. "
+                f"The student is feeling {mood}. "
+                "Provide emotional support. Do NOT give medical advice."
             )
+
+            try:
+                response = client.chat.completions.create(
+                    model="llama-3.1-8b-instant",
+                    messages=[
+                        {"role": "system", "content": SYSTEM_PROMPT},
+                        {"role": "user", "content": user_input}
+                    ],
+                    temperature=0.7,
+                    max_tokens=200
+                )
+                reply = response.choices[0].message.content
+            except Exception:
+                reply = "Sorry, something went wrong. Please try again."
+
+            st.session_state.chat_history.append({
+                "user": user_input,
+                "bot": reply
+            })
+
+        else:
+            st.warning("Please type something before sending.")
+
+    st.markdown("---")
+    st.markdown("## 💬 Conversation History")
+
+    if not st.session_state.chat_history:
+        st.info("No messages yet. Start the conversation 💚")
+    else:
+        for chat in reversed(st.session_state.chat_history):
+            st.markdown(f"**🙂 You:** {chat['user']}")
+            st.markdown(f"**🤖 Bot:** {chat['bot']}")
+            st.markdown("---")
+
+# --------------------------------------------------
+# PERSONAL JOURNAL PAGE
+# --------------------------------------------------
+if page == "📓 Personal Journal":
+
+    st.markdown("# 📓 Personal Journal")
+    st.markdown("Reflect on your thoughts and track your journey 🌻")
+
+    journal_text = st.text_area(
+        "Write your reflection ✍️",
+        height=180,
+        placeholder="Write how you're feeling today..."
+    )
+
+    if st.button("💾 Save Entry"):
+        if journal_text.strip():
+            st.session_state.journal_entries.append({
+                "date": datetime.now().strftime("%d %b %Y, %I:%M %p"),
+                "mood": mood,
+                "text": journal_text
+            })
+            st.success("Journal entry saved 💚")
+        else:
+            st.warning("Please write something before saving.")
+
+    st.markdown("---")
+    st.markdown("## 📖 Your Past Entries")
+
+    if not st.session_state.journal_entries:
+        st.info("No journal entries yet.")
+    else:
+        for entry in reversed(st.session_state.journal_entries):
+            with st.expander(f"🗓 {entry['date']} — {entry['mood']}"):
+                st.write(entry["text"])
