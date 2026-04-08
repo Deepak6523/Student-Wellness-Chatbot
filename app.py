@@ -17,7 +17,7 @@ st.set_page_config(
 # --------------------------------------------------
 API_KEY = None
 try:
-    API_KEY = "6ce7c922-98a1-40bd-8b32-327c7427dccc"
+    API_KEY = "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"
 except Exception:
     API_KEY = os.getenv("GROQ_API_KEY")
 
